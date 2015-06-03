@@ -1,0 +1,68 @@
+// NOTE: This is a template file describing how to organize the parameters file
+// You have to create a Params.txt file in the same location of this template file and fill the fields with the desired values.
+// MAKE SURE NOT TO HAVE A SPACE BEFORE OR AFTER THE =
+
+//this is a the base folder for both the source and target image // e.g C:\\fake dir\\data
+base_folder=
+
+//This is the base dir where the output of the run is saved in // e.g C:\\fake dir\\out
+output_base_folder=
+
+// This is the name for the output folder // e.g testSeq1
+seq_name=
+
+// The base image which is matched
+reference_img_name=
+
+// target image
+target_img_name=
+
+//Number of affine space samples in the form of 2^N (n should be an even number)
+n=
+
+// affine space range parameters
+// uniform resize
+s_min=
+s_max=
+
+// resize scale in the vertical direction
+lambda_min=
+lambda_max=
+
+// shearing
+h_min=
+h_max=
+
+// rotation
+theta_min=
+theta_max=
+
+//Number of levels in the affine hierarchy      
+a_l=
+
+//Number of levels in the region hierarchy
+r_l=
+
+//Parameters space sampling criteria
+//1 = 4X shape (covers more parts in the parameters space, but it might need more samples), 
+//0 = X shape sampling
+sampling_criteria=
+
+//down sample factor (2^down_sample)
+down_sample=
+
+//fidelity threshold
+thrF=
+//ratio test threshold
+thrR=
+
+//Number of local maxima extracted from each level in the hierarchy
+num_local_maxima=
+
+//Number of local maxima to extract from matching each patch
+num_patch_local_maxima=
+
+// set to 1 if the foreground object is segmented
+has_mask=
+// mask location will be used if has_mask is set to 1
+mask_name=
