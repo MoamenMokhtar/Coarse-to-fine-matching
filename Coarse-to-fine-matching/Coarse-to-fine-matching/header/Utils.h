@@ -216,10 +216,10 @@ public:
 
 			int j = 0;
 
-			bool use4X = false;
+			
 
 
-			if(use4X){ 
+			if(params.samplingCriteria){ 
 				/*                                            ^
 				 sample the space in the shape of 4X	      |XX
 															  |XX

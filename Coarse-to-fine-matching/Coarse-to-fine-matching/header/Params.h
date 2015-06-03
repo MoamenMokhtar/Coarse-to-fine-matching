@@ -21,7 +21,7 @@ struct Params{
 	double lambdaMin, lambdaStep, lambdaMax;
 	double hMin, hStep, hMax;
 	double thetaMin, thetaStep, thetaMax;
-
+	int samplingCriteria;
 	int sAxis, thetaAxis, hAxis, lambdaAxis;
 	int patchRows;
 	int patchCols;

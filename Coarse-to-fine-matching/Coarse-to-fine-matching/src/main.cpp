@@ -23,7 +23,7 @@ using namespace cv;
 
 int main(){
 
-	ifstream paramFile("Params.txt", ifstream::in);
+	ifstream paramFile("..\\..\\Params.txt", ifstream::in);
 	char inputLine[500];
 	char baseDir[500];
 	char seqName[500];
@@ -35,6 +35,8 @@ int main(){
 	float sMin,sMax,lambdaMin,lambdaMax,hMin,hMax,thetaMin,thetaMax;
 	int hasMask;
 	float thr1, thr2;
+	int samplingCriteria;
+	samplingCriteria=-1;
 	numSamples = -1;
 	affineLevels = -1;
 	regionLevels = -1;
@@ -71,6 +73,7 @@ int main(){
  			sscanf_s (inputLine,"theta_max=%f", &thetaMax);
 			sscanf_s (inputLine,"a_l=%d", &affineLevels);
 			sscanf_s (inputLine,"r_l=%d", &regionLevels);
+			sscanf_s (inputLine,"sampling_criteria=%d", &samplingCriteria);
 			sscanf_s (inputLine,"down_sample=%d", &downSampleFactor);
 			sscanf_s (inputLine,"thrF=%f", &thr1);
 			sscanf_s (inputLine,"thrR=%f", &thr2);
@@ -85,7 +88,7 @@ int main(){
 		return -2;
 	}
 
-	if(numSamples == -1 || affineLevels ==-1 || numLocalMaxima ==-1 || sMin == -1 || sMax == -1 || lambdaMin == -1 || lambdaMax == -1 || hMin == -1 || hMax == -1 || thetaMin == -1 || thetaMax == -1 || thr1 == -1  || thr2 == -1 || downSampleFactor == -1){
+	if(numSamples == -1 || affineLevels ==-1 || numLocalMaxima ==-1 || sMin == -1 || sMax == -1 || lambdaMin == -1 || lambdaMax == -1 || hMin == -1 || hMax == -1 || thetaMin == -1 || thetaMax == -1 || thr1 == -1  || thr2 == -1 || downSampleFactor == -1 || samplingCriteria == -1){
 		cerr << "error in reading the parameters" << endl;
 		exit(1);
 	}
@@ -121,6 +124,7 @@ int main(){
 	params.patchRows = baseImg.rows/(1<<(downSampleFactor));
 	params.numLocalMaxima = numLocalMaxima;
 	params.numPatchLocalMaxima = numPatchLocalMaxima;
+	params.samplingCriteria = samplingCriteria;
 	int l = 1;
 
 	/*build the affine heirarchy*/
