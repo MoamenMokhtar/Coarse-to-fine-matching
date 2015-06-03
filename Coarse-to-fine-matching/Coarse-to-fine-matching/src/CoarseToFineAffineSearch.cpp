@@ -5,8 +5,6 @@ int CoarseToFineAffineSearch::initialize(Mat _img, Mat _region, Params _params, 
 
 	params = _params;
 	T1 = _T1;
-	//if(_region.rows < params.patchRows*2 && _region.cols < params.patchCols*2) // any of the patch's dimensions is less than the min dimensions
-	//	return false;
 #ifdef RESIZE
 
 	
