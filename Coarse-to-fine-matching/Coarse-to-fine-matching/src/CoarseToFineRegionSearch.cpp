@@ -113,7 +113,7 @@ void CoarseToFineRegionSearch::matchImages(){
 			regions.pop_back();
 			if(r.regionLevel > params.regionLevels)
 				continue;
-			Mat split = r.img;		
+			Mat split = r.img;	
 			CoarseToFineAffineSearch affineSearch;
 			int canUse;
 			if(r.match){ // the patch is not under rematching
@@ -175,8 +175,15 @@ void CoarseToFineRegionSearch::matchImages(){
 			sr.transform = affTrans;
 
 			if(hasMask && Utils::isBackground(mask, r)){
-				regions.push_back(r);
+				Utils::splitPatch(r, splits,false);
+				for(int i = 0; i < NUM_SPLITS; i++){
+					splits[i].parentImg = splits[i].img;
+					splits[i].parentAnchor = splits[i].anchor;
+					splits[i].regionLevel = r.regionLevel+1;
+					regions.push_back(splits[i]);
+				}
 				continue;
+				
 			}
 			double s, lambda, theta, h;
 			int canFind;

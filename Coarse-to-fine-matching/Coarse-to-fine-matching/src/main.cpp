@@ -83,7 +83,7 @@ int main(){
 			sscanf_s (inputLine,"num_local_maxima=%d", &numLocalMaxima);
 			sscanf_s (inputLine,"num_patch_local_maxima=%d", &numPatchLocalMaxima);
 			sscanf_s (inputLine,"has_mask=%d", &hasMask);			
-			sscanf_s (inputLine,"mask_name=%s", maskName, 300);
+			sscanf_s (inputLine,"mask_name=%[^\n]s", maskName, 300);
 		}
 		paramFile.close();
 	}else{
@@ -109,7 +109,7 @@ int main(){
 	if(hasMask){
 		char maskDir[256];
 		sprintf(maskDir, "%s\\%s", baseDir, maskName);
-		mask = imread(maskName,0);
+		mask = imread(maskDir,0);
 	}else{
 		 mask = Mat::ones(baseImg.size(),CV_8UC1);
 	}
