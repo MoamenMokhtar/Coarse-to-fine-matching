@@ -36,6 +36,7 @@ int main(){
 	int hasMask;
 	float thr1, thr2;
 	int samplingCriteria;
+	int initialTiling;
 	samplingCriteria=-1;
 	numSamples = -1;
 	affineLevels = -1;
@@ -53,6 +54,7 @@ int main(){
 	thr2 = -1;
 	downSampleFactor = -1;
 	numPatchLocalMaxima = -1;
+	initialTiling = -1;
 
 	if(paramFile.good()){
 		while(!paramFile.eof()){
@@ -75,6 +77,7 @@ int main(){
 			sscanf_s (inputLine,"r_l=%d", &regionLevels);
 			sscanf_s (inputLine,"sampling_criteria=%d", &samplingCriteria);
 			sscanf_s (inputLine,"down_sample=%d", &downSampleFactor);
+			sscanf_s (inputLine,"initial_tiling=%d", &initialTiling);
 			sscanf_s (inputLine,"thrF=%f", &thr1);
 			sscanf_s (inputLine,"thrR=%f", &thr2);
 			sscanf_s (inputLine,"num_local_maxima=%d", &numLocalMaxima);
@@ -88,7 +91,7 @@ int main(){
 		return -2;
 	}
 
-	if(numSamples == -1 || affineLevels ==-1 || numLocalMaxima ==-1 || sMin == -1 || sMax == -1 || lambdaMin == -1 || lambdaMax == -1 || hMin == -1 || hMax == -1 || thetaMin == -1 || thetaMax == -1 || thr1 == -1  || thr2 == -1 || downSampleFactor == -1 || samplingCriteria == -1){
+	if(numSamples == -1 || affineLevels ==-1 || numLocalMaxima ==-1 || sMin == -1 || sMax == -1 || lambdaMin == -1 || lambdaMax == -1 || hMin == -1 || hMax == -1 || thetaMin == -1 || thetaMax == -1 || thr1 == -1  || thr2 == -1 || downSampleFactor == -1 || samplingCriteria == -1 || initialTiling == -1){
 		cerr << "error in reading the parameters" << endl;
 		exit(1);
 	}
@@ -125,6 +128,7 @@ int main(){
 	params.numLocalMaxima = numLocalMaxima;
 	params.numPatchLocalMaxima = numPatchLocalMaxima;
 	params.samplingCriteria = samplingCriteria;
+	params.initialTiling = initialTiling;
 	int l = 1;
 
 	/*build the affine heirarchy*/

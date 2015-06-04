@@ -25,6 +25,7 @@ struct Params{
 	int sAxis, thetaAxis, hAxis, lambdaAxis;
 	int patchRows;
 	int patchCols;
+	int initialTiling;
 
 	vector<vector<vector<PQ> > > samplesInLevels;
 

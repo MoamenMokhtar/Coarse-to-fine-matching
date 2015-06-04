@@ -18,6 +18,7 @@ reference_img_name=
 target_img_name=
 
 //Number of affine space samples in the form of 2^N (n should be an even number)
+// default: set it to 14
 n=
 
 // affine space range parameters
@@ -37,18 +38,27 @@ h_max=
 theta_min=
 theta_max=
 
-//Number of levels in the affine hierarchy      
+//Number of levels in the affine hierarchy 
+//default: set it to 5     
 a_l=
 
 //Number of levels in the region hierarchy
+//default: set it to 2
 r_l=
 
 //Parameters space sampling criteria
 //1 = 4X shape (covers more parts in the parameters space, but it might need more samples), 
 //0 = X shape sampling
+//default: set it to 1
 sampling_criteria=
 
+//Initial tiling.. determines the size of the patch in the top level in the region hierarchy
+//e.g initial_tiling = 2 the initial region size will be 2^-2 of the original image size. i.e tessellate the original image into 16 regions in the top hierarchy.
+//default: set it to 2
+initial_tiling=
+
 //down sample factor (2^down_sample)
+//default: set it to 4
 down_sample=
 
 //fidelity threshold
@@ -57,12 +67,14 @@ thrF=
 thrR=
 
 //Number of local maxima extracted from each level in the hierarchy
+//default: set it to 10
 num_local_maxima=
 
 //Number of local maxima to extract from matching each patch
+//default: set it to 2
 num_patch_local_maxima=
 
-// set to 1 if the foreground object is segmented
+// set to 1 if the foreground object is segmented, else set it to 0
 has_mask=
 // mask location will be used if has_mask is set to 1
 mask_name=

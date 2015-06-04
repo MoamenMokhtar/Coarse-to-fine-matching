@@ -72,7 +72,7 @@ void CoarseToFineRegionSearch::matchImages(){
 
 		timer algo_timer;
 		algo_timer.tic();
-		vector<RegionSplit> regions, region2;
+		vector<RegionSplit> regions, regions2;
 		RegionSplit s1;
 		s1.anchor = Point(0,0);
 		s1.parentAnchor = Point(0,0);
@@ -81,25 +81,26 @@ void CoarseToFineRegionSearch::matchImages(){
 		RegionSplit splits[NUM_SPLITS];
 		RegionSplit splits2[NUM_SPLITS];
 
-		Utils::splitPatch(s1, splits,false);
-		for(int i = 0; i < NUM_SPLITS; i++){
-			splits[i].parentImg = splits[i].img;
-			splits[i].parentAnchor = splits[i].anchor;
-			regions.push_back(splits[i]);
+		int numSplits = 0;
+		regions.push_back(s1);
+		while(numSplits < params.initialTiling){
+			while(!regions.empty()){
+				RegionSplit r = regions[regions.size()-1];
+				regions.pop_back();
+				Utils::splitPatch(r, splits,false);
+				for(int i = 0; i < NUM_SPLITS; i++){
+					splits[i].parentImg = splits[i].img;
+					splits[i].parentAnchor = splits[i].anchor;
+					splits[i].regionLevel = 1;
+					regions2.push_back(splits[i]);
+				}
+
+			}
+			regions = regions2;
+			regions2.clear();
+			numSplits++;
 		}
 
-		for(int i = 0; i < NUM_SPLITS; i++){
-			RegionSplit r = regions[regions.size()-1];
-			regions.pop_back();
-			Utils::splitPatch(r, splits2,false);
-			for(int j = 0; j < NUM_SPLITS; j++){
-				splits2[j].parentImg = splits2[j].img;
-				splits2[j].parentAnchor = splits2[j].anchor;
-				splits2[j].regionLevel = 1;
-				region2.push_back(splits2[j]);
-			}
-		}
-		regions = region2;
 
 		int inum = 1;
 		int matchingId = -1;
