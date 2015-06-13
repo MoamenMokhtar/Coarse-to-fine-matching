@@ -24,7 +24,7 @@ int CoarseToFineAffineSearch::initialize(Mat _img, Mat _region, Params _params, 
 		heightResizeFactor = 1<<(int)dR;
 		region = _region;
 		img = _img;
-		for(int i = 0; i < dR; i++){
+		for(int i = 0; i < (int)dR; i++){
 			pyrDown(region, region);
 			pyrDown(img, img);
 		}
