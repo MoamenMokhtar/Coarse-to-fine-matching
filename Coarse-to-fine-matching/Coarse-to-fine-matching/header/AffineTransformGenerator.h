@@ -131,6 +131,8 @@ public:
 		}	
 		minX = (minX < 0) ? 0 : minX;
 		minY = (minY < 0) ? 0 : minY;
+		maxX = (maxX >= res3.cols) ? res3.cols-1 : maxX;
+		maxY = (maxY >= res3.rows) ? res3.rows-1 : maxY;
 		warpAffine( res3, res3, rot_mat, res3.size());
 		Rect roi(Point(minX, minY), Point(maxX, maxY));
 		res3 = res3(roi);
