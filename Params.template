@@ -74,6 +74,10 @@ num_local_maxima=
 //default: set it to 2
 num_patch_local_maxima=
 
+//Backtrack the affine hierarchy starting from a neighbouring solution
+//set to 1 to use the affine hierarchy backtracking
+hierarchy_backtrack=
+
 // set to 1 if the foreground object is segmented, else set it to 0
 has_mask=
 // mask location will be used if has_mask is set to 1

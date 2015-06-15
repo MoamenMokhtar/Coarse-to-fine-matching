@@ -72,7 +72,8 @@ void CoarseToFineRegionSearch::matchImages(){
 
 		timer algo_timer;
 		algo_timer.tic();
-		vector<RegionSplit> regions, regions2;
+		queue<RegionSplit> regions, regions2;
+		//vector<RegionSplit> regions, regions2;
 		RegionSplit s1;
 		s1.anchor = Point(0,0);
 		s1.parentAnchor = Point(0,0);
@@ -82,22 +83,23 @@ void CoarseToFineRegionSearch::matchImages(){
 		RegionSplit splits2[NUM_SPLITS];
 
 		int numSplits = 0;
-		regions.push_back(s1);
+		regions.push(s1);
 		while(numSplits < params.initialTiling){
 			while(!regions.empty()){
-				RegionSplit r = regions[regions.size()-1];
-				regions.pop_back();
+				RegionSplit r = regions.front();
+				regions.pop();
 				Utils::splitPatch(r, splits,false);
 				for(int i = 0; i < NUM_SPLITS; i++){
 					splits[i].parentImg = splits[i].img;
 					splits[i].parentAnchor = splits[i].anchor;
 					splits[i].regionLevel = 1;
-					regions2.push_back(splits[i]);
+					regions2.push(splits[i]);
 				}
 
 			}
-			regions = regions2;
-			regions2.clear();
+			regions = regions2;	
+			while(!regions2.empty())
+				regions2.pop();
 			numSplits++;
 		}
 
@@ -105,16 +107,18 @@ void CoarseToFineRegionSearch::matchImages(){
 		int inum = 1;
 		int matchingId = -1;
 		int attemptedPatchID = -1;
-
+		int numrem = 0;
 		int numPassed = 0;
 			// start region matching
 		while(!regions.empty()){
-			RegionSplit r = regions[regions.size()-1];
-			regions.pop_back();
+			RegionSplit r = regions.front();
+			regions.pop();
 			if(r.regionLevel > params.regionLevels)
 				continue;
 			Mat split = r.img;	
 			CoarseToFineAffineSearch affineSearch;
+			float maxScore, secondMaxScore;
+			LocalMaximum topLocalMaximum;
 			int canUse;
 			if(r.match){ // the patch is not under rematching
 				canUse = affineSearch.initialize(I2, split, params, t1); // initialize the affine heirarchy search				
@@ -180,37 +184,105 @@ void CoarseToFineRegionSearch::matchImages(){
 					splits[i].parentImg = splits[i].img;
 					splits[i].parentAnchor = splits[i].anchor;
 					splits[i].regionLevel = r.regionLevel+1;
-					regions.push_back(splits[i]);
+					regions.push(splits[i]);
 				}
 				continue;
 				
 			}
+			int nunNeighbors = 3;
 			double s, lambda, theta, h;
 			int canFind;
 			if(r.match){
-				canFind = affineSearch.computeBestAffineTransform(s, lambda, theta, h, numNCC);
-				/*retain the transformation parameters*/
-				affTrans.s = s;
-				affTrans.lambda = lambda;
-				affTrans.theta = theta;
-				affTrans.h = h;							
-				affTrans.tx = affineSearch.topLocalMaximum.regionAnchor.x*affineSearch.widthResizeFactor; 
-				affTrans.ty = affineSearch.topLocalMaximum.regionAnchor.y*affineSearch.heightResizeFactor;
-				affTrans.pIdx = affineSearch.topLocalMaximum.p;
-				r.affTrans = affTrans;
+				bool redoMatch = true;
+				if(params.backtrackAffineHierarchy){
+					//find the k nearest neighbors, and try their affine transformation
+					AffineSolution prevSol;
+					int minDx, minDy;
+					minDx = minDy = 10000;
+					bool foundPrevSol = false;
+					priority_queue<AffineSolution, vector<AffineSolution>, AffineSolutionComparator> pq;
+					for(int k =0; k <prevSolutions.size();k++){
+						AffineSolution solution = prevSolutions[k];
+						int xDist = abs(r.anchor.x - solution.loc.x);
+						int yDist = abs(r.anchor.y - solution.loc.y);
+						float dist = sqrt((xDist*xDist)+(yDist*yDist)*1.0f);
+						solution.dist = dist;					
+						if(pq.size() < nunNeighbors)
+							pq.push(solution);
+						else{
+							if(pq.top().dist > dist){
+								pq.pop();
+								pq.push(solution);
+							}
+						}
+					}
+					
+					if(!pq.empty()){
+						timer prevTimer;
+						prevTimer.tic();
+						float maxlocScore = -1;
+						AffineSolution bestSol;
+						while(!pq.empty()){
+							AffineSolution currSol = pq.top();
+							pq.pop();
+							canFind = affineSearch.backtrackTheAffineHierarchy(s, lambda, theta, h, numNCC, params.affineLevels, params.affineLevels-1, currSol);
+							if(affineSearch.maxScore > maxlocScore){
+								bestSol = currSol;
+								maxlocScore = affineSearch.maxScore;
+								maxScore = affineSearch.maxScore;
+								secondMaxScore = affineSearch.secondMaxScore;
+								topLocalMaximum = affineSearch.topLocalMaximum;
+								bestSol.affineTrans.s = s;
+								bestSol.affineTrans.lambda = lambda;
+								bestSol.affineTrans.theta = theta;
+								bestSol.affineTrans.h = h;							
+								bestSol.affineTrans.tx = affineSearch.topLocalMaximum.regionAnchor.x*affineSearch.widthResizeFactor; 
+								bestSol.affineTrans.ty = affineSearch.topLocalMaximum.regionAnchor.y*affineSearch.heightResizeFactor;
+								bestSol.affineTrans.pIdx = affineSearch.topLocalMaximum.p;
+
+							}
+						}					
+						if(maxlocScore >= t1){
+							r.affTrans = bestSol.affineTrans;
+							redoMatch = false;
+							numrem++;							
+						}
+					}
+				}
+				if(redoMatch){
+					timer redoTimer;
+					redoTimer.tic();
+					canFind = affineSearch.computeBestAffineTransform(s, lambda, theta, h, numNCC,1);
+					maxScore = affineSearch.maxScore;
+					secondMaxScore = affineSearch.secondMaxScore;
+					topLocalMaximum = affineSearch.topLocalMaximum;
+					/*retain the transformation parameters*/
+					affTrans.s = s;
+					affTrans.lambda = lambda;
+					affTrans.theta = theta;
+					affTrans.h = h;							
+					affTrans.tx = affineSearch.topLocalMaximum.regionAnchor.x*affineSearch.widthResizeFactor; 
+					affTrans.ty = affineSearch.topLocalMaximum.regionAnchor.y*affineSearch.heightResizeFactor;
+					affTrans.pIdx = affineSearch.topLocalMaximum.p;
+					r.affTrans = affTrans;
+				}
 			}
 			else{
-				canFind = affineSearch.computeBestAffineTransform(s, lambda, theta, h, numNCC, 1, r.affTrans);
+				canFind = affineSearch.computeBestAffineTransform(s, lambda, theta, h, numNCC,L, 1,r.affTrans);
+				maxScore = affineSearch.maxScore;
+				secondMaxScore = affineSearch.secondMaxScore;
+				topLocalMaximum = affineSearch.topLocalMaximum;
+
 			}
 						
 			cout << "Max score " <<affineSearch.maxScore << " Second Max score "  << affineSearch.secondMaxScore << " second/top " << affineSearch.secondMaxScore/affineSearch.maxScore << endl;
-			double topScore = affineSearch.maxScore ;
+			double topScore = maxScore ;
 
 #ifdef USE_SQDIFF_NORMED
 				double ratio = affineSearch.maxScore/affineSearch.secondMaxScore;
 				if(!canFind || topScore > T1){
 #else
-				double ratio = affineSearch.secondMaxScore/affineSearch.maxScore;
+				double ratio = secondMaxScore/maxScore;
 
 				if(topScore < t1){ // didn't pass the first threshold test
 #endif								
@@ -223,14 +295,14 @@ void CoarseToFineRegionSearch::matchImages(){
 							splits[i].parentImg = r.img.clone();
 							splits[i].parentAnchor = r.anchor;
 							splits[i].regionLevel = r.regionLevel+1;
-							regions.push_back(splits[i]);
+							regions.push(splits[i]);
 						}
 					}
 					else{ // rematch the patch
 						r.match = true;
 						r.parentImg = r.img;
 						r.parentAnchor = r.anchor;
-						regions.push_back(r);
+						regions.push(r);
 					}
 				}else{ // passed the first threshold test
 					matchingId++;
@@ -242,6 +314,13 @@ void CoarseToFineRegionSearch::matchImages(){
 						blue = rand()%255;
 						accepted = true;
 						thickness = 3;
+						AffineSolution sol;
+						
+						sol.affineTrans = r.affTrans;
+						sol.matchScore = topScore;
+						sol.ratio = ratio;
+						sol.loc = r.anchor;
+						prevSolutions.push_back(sol);
 					}else{
 						red = 0;
 						green = 0;
@@ -249,7 +328,7 @@ void CoarseToFineRegionSearch::matchImages(){
 						thickness = 1;
 						accepted = false;
 					}
-					LocalMaximum selected = affineSearch.topLocalMaximum;
+					LocalMaximum selected = topLocalMaximum;
 					sr.matchingID = matchingId;
 					sr.transform = r.affTrans;
 
@@ -293,19 +372,12 @@ void CoarseToFineRegionSearch::matchImages(){
 					
 				}
 		}
-		
+
 		r1.close();
 		r2.close();
 		pF<<"MatchingTime="<<algo_timer.toc()/1000 <<endl;
 		pF<<"Num NCC ="<<numNCC <<endl;
-		pF.close();
-		
-
-		// deallocate resources
-		for(int i = 0; i < regions.size(); i++)
-			regions[i].img.release();
-		regions.clear();
-
+		pF.close();		
 }
 
 

@@ -61,11 +61,39 @@ int CoarseToFineAffineSearch::initialize(Mat _img, Mat _region, Params _params, 
 	return true;
 }
 
+
+int CoarseToFineAffineSearch::backtrackTheAffineHierarchy(double& cS, double& cLambda, double& cTheta, double& cH, int& numNCC, int sL, int eL, AffineSolution& prevSolution){
+
+	int l = sL;
+	AffineSolution currSol = prevSolution;
+	bool withingTree = 0;
+	
+	while(l >= eL && maxScore < T1){
+		// compute affine transform from current solution.
+		settingSet.insert(currSol.affineTrans.pIdx);
+		computeBestAffineTransform(cS, cLambda, cTheta, cH, numNCC, l, 1, currSol.affineTrans);
+		if(maxScore >=T1){
+			withingTree = 1;	
+			prevSolution.affineTrans.s = cS;
+			prevSolution.affineTrans.lambda = cLambda;
+			prevSolution.affineTrans.h = cH;
+			prevSolution.affineTrans.theta = cTheta;
+			prevSolution.affineTrans.pIdx = currSol.affineTrans.pIdx;
+			break;
+		}
+		// backtrack
+		l--;
+		currSol.affineTrans.pIdx = floor(currSol.affineTrans.pIdx/4*1.0f);
+	}
+	settingSet.clear();
+	return withingTree;
+}
+
 /*
 computeBestAffineTransform:
 	this function goes through the affine hierarchy to reach the leaf node with the best affine transform and localizes the location of the corresponding region
 */
-int CoarseToFineAffineSearch::computeBestAffineTransform(double& cS, double& cLambda, double& cTheta, double& cH, int& numNCC, bool matchUsingPrevTrans, AffineTransform affTrans){
+int CoarseToFineAffineSearch::computeBestAffineTransform(double& cS, double& cLambda, double& cTheta, double& cH, int& numNCC, int cL, bool matchUsingPrevTrans, AffineTransform affTrans){
 	int N = params.N/2;
 	int L = params.affineLevels;
 	int l = 1;
@@ -98,9 +126,8 @@ int CoarseToFineAffineSearch::computeBestAffineTransform(double& cS, double& cLa
 		lm.p = affTrans.pIdx;
 		lm.q = affTrans.pIdx;
 		lm.region = img;
-		subsets.push_back(lm);
-		
-		l = L;
+		subsets.push_back(lm);		
+		l = cL;
 	}
 	timer total_timer;
 	total_timer.tic();
@@ -160,7 +187,8 @@ int CoarseToFineAffineSearch::computeBestAffineTransform(double& cS, double& cLa
 					#endif
 
 					localMax.regionAnchor = regionAnchor;
-					subsets.push_back(localMax);
+					if(settingSet.count(cp)==0)
+						subsets.push_back(localMax);
 				}
 				k++;
 				tI.insert(lm.p);

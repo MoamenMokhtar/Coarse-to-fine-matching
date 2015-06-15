@@ -1,6 +1,7 @@
 #ifndef COARSE_TO_FINE_REGION_SEARCH_H_
 #define COARSE_TO_FINE_REGION_SEARCH_H_
 
+#include <queue>
 #include <stdio.h>
 #include <stdlib.h>
 #include <iostream>
@@ -20,7 +21,8 @@
 #include "Utils.h"
 #include "CoarseToFineAffineSearch.h"
 #include "RegionSplit.h"
-
+#include "AffineSolution.h"
+#include "AffineSolutionComparator.h"
 #include "StoredRegion.h"
 class CoarseToFineRegionSearch{
 public:
@@ -32,6 +34,9 @@ public:
 	int hasMask;
 	string seq;
 	double t1, t2;
+
+	vector<AffineSolution> prevSolutions;
+		
 	CoarseToFineRegionSearch(){}
 	~CoarseToFineRegionSearch(){}
 	void deallocate();

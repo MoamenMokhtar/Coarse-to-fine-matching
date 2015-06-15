@@ -26,7 +26,7 @@ struct Params{
 	int patchRows;
 	int patchCols;
 	int initialTiling;
-
+	int backtrackAffineHierarchy;
 	vector<vector<vector<PQ> > > samplesInLevels;
 
 };

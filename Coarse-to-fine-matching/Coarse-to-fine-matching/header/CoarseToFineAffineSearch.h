@@ -31,7 +31,8 @@
 #include "P.h"
 #include "Q.h"
 #include "AffineTransform.h"
-
+#include "AffineSolution.h"
+#include <unordered_set>
 using namespace std;
 using namespace cv;
 
@@ -44,7 +45,7 @@ public:
 	double maxScore, secondMaxScore;
 	Point secondMaxLoc;
 	LocalMaximum topLocalMaximum;
-
+	unordered_set<int> settingSet;
 	double widthResizeFactor, heightResizeFactor;
 	CoarseToFineAffineSearch(){
 	}
@@ -53,10 +54,9 @@ public:
 
 	int initialize(Mat _img, Mat _region, Params _params, double _T1);
 
-	int computeBestAffineTransform(double& cS, double& cLambda, double& cTheta, double& cH, int& numNCC, bool usePrevAffTrans=0, AffineTransform affTrans = AffineTransform());
-	void deallocate();
-
+	int computeBestAffineTransform(double& cS, double& cLambda, double& cTheta, double& cH, int& numNCC, int cL, bool usePrevAffTrans=0, AffineTransform affTrans = AffineTransform());
 	vector<LocalMaximum> computeBestMatches(vector<LocalMaximum> subsets, int l, vector<vector<PQ> > pqV, int& numNCC);
-	
+	int backtrackTheAffineHierarchy(double& cS, double& cLambda, double& cTheta, double& cH, int& numNCC, int sL, int eL, AffineSolution& prevSolution);
+	void deallocate();
 };
 #endif
